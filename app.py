@@ -1,3 +1,10 @@
+import os
+
+GOOGLE_CREDENTIALS_ENV = os.getenv('GOOGLE_CREDENTIALS')
+if GOOGLE_CREDENTIALS_ENV:
+    with open('credentials.json', 'w') as f:
+        f.write(GOOGLE_CREDENTIALS_ENV)
+
 from flask import Flask, jsonify, request
 import requests, sys, json
 from google.oauth2.credentials import Credentials
@@ -8,7 +15,6 @@ import os.path
 import pickle
 import openai
 from datetime import datetime, timedelta
-import os
 from dateutil import parser
 import re
 

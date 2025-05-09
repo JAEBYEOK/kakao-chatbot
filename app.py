@@ -8,13 +8,14 @@ import os.path
 import pickle
 import openai
 from datetime import datetime, timedelta
+import os
 
 application = Flask(__name__)
 a = {}
 
 # Google Calendar API 설정
 SCOPES = ['https://www.googleapis.com/auth/calendar']
-CREDENTIALS_FILE = 'credentials.json'
+CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE', 'credentials.json')
 TOKEN_FILE = 'token.pickle'
 
 def get_google_calendar_service():
@@ -34,17 +35,21 @@ def get_google_calendar_service():
     
     return build('calendar', 'v3', credentials=creds)
 
+@application.route("/")
+def home():
+    return jsonify({"status": "ok", "message": "서버가 정상적으로 실행 중입니다."})
+
 @application.route("/webhook/", methods=["POST"])
 def webhook():
     global a
     request_data = json.loads(request.get_data(), encoding='utf-8')
     a[request_data['user']] = request_data['result']['choices'][0]['message']['content']
-    return 'OK'
+    return jsonify({"status": "ok", "message": "웹훅이 성공적으로 처리되었습니다."})
 
 @application.route("/question", methods=["POST"])
 def get_question():
     global a
-    request_data = json.loads(request.get_data(), encoding='utf-8')
+    request_data = request.get_json()
     user_id = request_data['userRequest']['user']['id']
     question = request_data['action']['params']['question']
     
@@ -57,6 +62,9 @@ def get_question():
     try:
         # OpenAI API 직접 호출
         openai.api_key = os.getenv('OPENAI_API_KEY')
+        if not openai.api_key:
+            raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
+            
         completion = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": question}]
@@ -123,11 +131,12 @@ def schedule_meeting():
 
 @application.route("/ans", methods=["POST"])
 def get_answer():
-    request_data = json.loads(request.get_data(), encoding='utf-8')
+    request_data = request.get_json()
     response = { "version": "2.0", "template": { "outputs": [{
         "simpleText": {"text": f"답변: {a.get(request_data['userRequest']['user']['id'], '질문을 하신적이 없어보여요. 질문부터 해주세요')}"}
     }]}}
     return jsonify(response)
 
 if __name__ == "__main__":
-    application.run(host='0.0.0.0', port=80, debug=True) 
+    port = int(os.environ.get("PORT", 10000))
+    application.run(host='0.0.0.0', port=port, debug=False) 

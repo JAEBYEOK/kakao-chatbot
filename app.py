@@ -106,11 +106,9 @@ def schedule_meeting():
     date_str = request_data['action']['params']['date']
     time_param = request_data['action']['params']['time']
 
-    # 실제 들어오는 값 확인
     print(f"date_str: {date_str}, time_param: {time_param}, type: {type(time_param)}")
 
     def parse_time_range(time_param, date_str):
-        # 1. 딕셔너리(엔티티 객체)로 들어오는 경우
         if isinstance(time_param, dict):
             start_time = time_param.get('from') or time_param.get('start')
             end_time = time_param.get('to') or time_param.get('end')
@@ -120,7 +118,6 @@ def schedule_meeting():
                 return start_time_fmt, end_time_fmt
             except:
                 return None, None
-        # 2. 문자열로 들어오는 경우 (기존 코드)
         match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_param)
         if match:
             start_hour = int(match.group(1))
@@ -138,17 +135,13 @@ def schedule_meeting():
             return None, None
 
     try:
-        # 날짜와 시간 파싱
         start_time, end_time = parse_time_range(time_param, date_str)
         if not start_time or not end_time:
             raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_param}")
-        
-        # Google Calendar API 사용
         service = get_google_calendar_service()
-        
-        # 캘린더 ID 설정 (서비스 계정의 이메일 주소)
-        calendar_id = os.getenv('GOOGLE_CALENDAR_ID', 'primary')
-        
+        calendar_id = os.getenv('GOOGLE_CALENDAR_ID')
+        if not calendar_id:
+            raise ValueError("환경변수 GOOGLE_CALENDAR_ID가 설정되어 있지 않습니다.")
         event = {
             'summary': '상담 일정',
             'description': f'카카오톡 챗봇을 통한 상담 예약',
@@ -161,13 +154,11 @@ def schedule_meeting():
                 'timeZone': 'Asia/Seoul',
             },
         }
-        
         event = service.events().insert(
             calendarId=calendar_id,
             body=event,
-            sendUpdates='all'  # 참석자에게 이메일 알림 전송
+            sendUpdates='all'
         ).execute()
-        
         response = {
             "version": "2.0",
             "template": {
@@ -179,7 +170,7 @@ def schedule_meeting():
             }
         }
     except Exception as e:
-        error_message = f"일정 등록 중 오류가 발생했습니다: {str(e)}"
+        error_message = f"일정 등록 중 오류가 발생했습니다: {str(e)}\n캘린더ID: {os.getenv('GOOGLE_CALENDAR_ID')}"
         print(error_message)  # 로깅을 위해 에러 메시지 출력
         response = {
             "version": "2.0",

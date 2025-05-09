@@ -1,4 +1,5 @@
 import os
+import time
 
 GOOGLE_CREDENTIALS_ENV = os.getenv('GOOGLE_CREDENTIALS')
 if GOOGLE_CREDENTIALS_ENV:
@@ -72,14 +73,37 @@ def get_question():
         openai.api_key = os.getenv('OPENAI_API_KEY')
         if not openai.api_key:
             raise ValueError("OpenAI API 키가 설정되지 않았습니다.")
+        
+        # 최대 3번까지 재시도
+        max_retries = 3
+        retry_count = 0
+        last_error = None
+        
+        while retry_count < max_retries:
+            try:
+                completion = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": question}],
+                    timeout=25  # 렌더의 30초 제한을 고려하여 25초로 설정
+                )
+                a[user_id] = completion.choices[0].message.content
+                break
+            except Exception as e:
+                last_error = e
+                retry_count += 1
+                if retry_count == max_retries:
+                    break
+                time.sleep(2)  # 재시도 전 2초 대기
+        
+        if retry_count == max_retries:
+            error_message = f"OpenAI API 호출 실패 (최대 재시도 횟수 초과): {str(last_error)}"
+            a[user_id] = error_message
+            print(error_message)  # 로깅을 위해 에러 메시지 출력
             
-        completion = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": question}]
-        )
-        a[user_id] = completion.choices[0].message.content
     except Exception as e:
-        a[user_id] = f"죄송합니다. 오류가 발생했습니다: {str(e)}"
+        error_message = f"죄송합니다. 오류가 발생했습니다: {str(e)}"
+        a[user_id] = error_message
+        print(error_message)  # 로깅을 위해 에러 메시지 출력
     
     return jsonify(response)
 

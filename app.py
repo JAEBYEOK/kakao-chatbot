@@ -109,34 +109,44 @@ def schedule_meeting():
     print(f"date_str: {date_str}, time_param: {time_param}, type: {type(time_param)}")
 
     def parse_time_range(time_param, date_str):
+        # 1. 딕셔너리(엔티티 객체)로 들어오는 경우
         if isinstance(time_param, dict):
             start_time = time_param.get('from') or time_param.get('start')
             end_time = time_param.get('to') or time_param.get('end')
             try:
-                start_time_fmt = parser.parse(start_time).strftime("%H:%M")
-                end_time_fmt = parser.parse(end_time).strftime("%H:%M")
-                return start_time_fmt, end_time_fmt
+                start_time_fmt = parser.parse(start_time).strftime("%H:%M:%S")
+                end_time_fmt = parser.parse(end_time).strftime("%H:%M:%S")
+                start_datetime = f"{date_str}T{start_time_fmt}"
+                end_datetime = f"{date_str}T{end_time_fmt}"
+                return start_datetime, end_datetime
             except:
                 return None, None
+        # 2. 문자열로 들어오는 경우 (예: '1시부터 2시')
         match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_param)
         if match:
             start_hour = int(match.group(1))
             end_hour = int(match.group(2))
-            start_time = f"{start_hour:02d}:00"
-            end_time = f"{end_hour:02d}:00"
-            return start_time, end_time
+            start_time = f"{start_hour:02d}:00:00"
+            end_time = f"{end_hour:02d}:00:00"
+            start_datetime = f"{date_str}T{start_time}"
+            end_datetime = f"{date_str}T{end_time}"
+            return start_datetime, end_datetime
         match = re.match(r'(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})', time_param)
         if match:
-            return match.group(1), match.group(2)
+            start_datetime = f"{date_str}T{match.group(1)}:00"
+            end_datetime = f"{date_str}T{match.group(2)}:00"
+            return start_datetime, end_datetime
         try:
             parsed = parser.parse(time_param)
-            return parsed.strftime("%H:%M"), (parsed + timedelta(hours=1)).strftime("%H:%M")
+            start_datetime = f"{date_str}T{parsed.strftime('%H:%M:%S')}"
+            end_datetime = f"{date_str}T{(parsed + timedelta(hours=1)).strftime('%H:%M:%S')}"
+            return start_datetime, end_datetime
         except:
             return None, None
 
     try:
-        start_time, end_time = parse_time_range(time_param, date_str)
-        if not start_time or not end_time:
+        start_datetime, end_datetime = parse_time_range(time_param, date_str)
+        if not start_datetime or not end_datetime:
             raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_param}")
         service = get_google_calendar_service()
         calendar_id = os.getenv('GOOGLE_CALENDAR_ID')
@@ -146,14 +156,15 @@ def schedule_meeting():
             'summary': '상담 일정',
             'description': f'카카오톡 챗봇을 통한 상담 예약',
             'start': {
-                'dateTime': f"{date_str}T{start_time}:00",
+                'dateTime': start_datetime,
                 'timeZone': 'Asia/Seoul',
             },
             'end': {
-                'dateTime': f"{date_str}T{end_time}:00",
+                'dateTime': end_datetime,
                 'timeZone': 'Asia/Seoul',
             },
         }
+        print("event 데이터:", json.dumps(event, ensure_ascii=False))
         event = service.events().insert(
             calendarId=calendar_id,
             body=event,
@@ -164,7 +175,7 @@ def schedule_meeting():
             "template": {
                 "outputs": [{
                     "simpleText": {
-                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n날짜: {date_str}\n시간: {start_time} ~ {end_time}"
+                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n날짜: {date_str}\n시간: {start_datetime[-8:-3]} ~ {end_datetime[-8:-3]}"
                     }
                 }]
             }

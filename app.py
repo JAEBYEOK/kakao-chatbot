@@ -9,6 +9,8 @@ import pickle
 import openai
 from datetime import datetime, timedelta
 import os
+from dateutil import parser
+import re
 
 application = Flask(__name__)
 a = {}
@@ -77,40 +79,57 @@ def get_question():
 
 @application.route("/schedule", methods=["POST"])
 def schedule_meeting():
-    request_data = json.loads(request.get_data(), encoding='utf-8')
+    request_data = request.get_json()
     user_id = request_data['userRequest']['user']['id']
     date_str = request_data['action']['params']['date']
     time_str = request_data['action']['params']['time']
-    
+
+    def parse_time_range(time_str, date_str):
+        # "3시부터 4시" 패턴
+        match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_str)
+        if match:
+            start_hour = int(match.group(1))
+            end_hour = int(match.group(2))
+            start_time = f"{start_hour:02d}:00"
+            end_time = f"{end_hour:02d}:00"
+            return start_time, end_time
+        # "15:00~16:00" 패턴
+        match = re.match(r'(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})', time_str)
+        if match:
+            return match.group(1), match.group(2)
+        # 단일 시간만 들어온 경우
+        try:
+            parsed = parser.parse(time_str)
+            return parsed.strftime("%H:%M"), (parsed + timedelta(hours=1)).strftime("%H:%M")
+        except:
+            return None, None
+
     try:
         # 날짜와 시간 파싱
-        datetime_str = f"{date_str} {time_str}"
-        meeting_time = datetime.strptime(datetime_str, "%Y-%m-%d %H:%M")
-        
+        start_time, end_time = parse_time_range(time_str, date_str)
+        if not start_time or not end_time:
+            raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_str}")
         # Google Calendar API 사용
         service = get_google_calendar_service()
-        
         event = {
             'summary': '상담 일정',
             'description': f'카카오톡 챗봇을 통한 상담 예약',
             'start': {
-                'dateTime': meeting_time.isoformat(),
+                'dateTime': f"{date_str}T{start_time}:00",
                 'timeZone': 'Asia/Seoul',
             },
             'end': {
-                'dateTime': (meeting_time + timedelta(hours=1)).isoformat(),
+                'dateTime': f"{date_str}T{end_time}:00",
                 'timeZone': 'Asia/Seoul',
             },
         }
-        
         event = service.events().insert(calendarId='primary', body=event).execute()
-        
         response = {
             "version": "2.0",
             "template": {
                 "outputs": [{
                     "simpleText": {
-                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n날짜: {date_str}\n시간: {time_str}"
+                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n날짜: {date_str}\n시간: {start_time} ~ {end_time}"
                     }
                 }]
             }
@@ -126,7 +145,6 @@ def schedule_meeting():
                 }]
             }
         }
-    
     return jsonify(response)
 
 @application.route("/ans", methods=["POST"])

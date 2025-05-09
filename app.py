@@ -1,5 +1,6 @@
 import os
 import time
+import json
 
 GOOGLE_CREDENTIALS_ENV = os.getenv('GOOGLE_CREDENTIALS')
 if GOOGLE_CREDENTIALS_ENV:
@@ -8,9 +9,7 @@ if GOOGLE_CREDENTIALS_ENV:
 
 from flask import Flask, jsonify, request
 import requests, sys, json
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
+from google.oauth2 import service_account
 from googleapiclient.discovery import build
 import os.path
 import pickle
@@ -25,24 +24,17 @@ a = {}
 # Google Calendar API 설정
 SCOPES = ['https://www.googleapis.com/auth/calendar']
 CREDENTIALS_FILE = os.getenv('GOOGLE_CREDENTIALS_FILE', 'credentials.json')
-TOKEN_FILE = 'token.pickle'
 
 def get_google_calendar_service():
-    creds = None
-    if os.path.exists(TOKEN_FILE):
-        with open(TOKEN_FILE, 'rb') as token:
-            creds = pickle.load(token)
-    
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(TOKEN_FILE, 'wb') as token:
-            pickle.dump(creds, token)
-    
-    return build('calendar', 'v3', credentials=creds)
+    try:
+        credentials = service_account.Credentials.from_service_account_file(
+            CREDENTIALS_FILE, 
+            scopes=SCOPES
+        )
+        return build('calendar', 'v3', credentials=credentials)
+    except Exception as e:
+        print(f"Google Calendar 서비스 초기화 중 오류 발생: {str(e)}")
+        raise e
 
 @application.route("/")
 def home():
@@ -150,8 +142,13 @@ def schedule_meeting():
         start_time, end_time = parse_time_range(time_param, date_str)
         if not start_time or not end_time:
             raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_param}")
+        
         # Google Calendar API 사용
         service = get_google_calendar_service()
+        
+        # 캘린더 ID 설정 (서비스 계정의 이메일 주소)
+        calendar_id = os.getenv('GOOGLE_CALENDAR_ID', 'primary')
+        
         event = {
             'summary': '상담 일정',
             'description': f'카카오톡 챗봇을 통한 상담 예약',
@@ -164,7 +161,13 @@ def schedule_meeting():
                 'timeZone': 'Asia/Seoul',
             },
         }
-        event = service.events().insert(calendarId='primary', body=event).execute()
+        
+        event = service.events().insert(
+            calendarId=calendar_id,
+            body=event,
+            sendUpdates='all'  # 참석자에게 이메일 알림 전송
+        ).execute()
+        
         response = {
             "version": "2.0",
             "template": {
@@ -176,12 +179,14 @@ def schedule_meeting():
             }
         }
     except Exception as e:
+        error_message = f"일정 등록 중 오류가 발생했습니다: {str(e)}"
+        print(error_message)  # 로깅을 위해 에러 메시지 출력
         response = {
             "version": "2.0",
             "template": {
                 "outputs": [{
                     "simpleText": {
-                        "text": f"일정 등록 중 오류가 발생했습니다: {str(e)}"
+                        "text": error_message
                     }
                 }]
             }

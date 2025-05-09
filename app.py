@@ -99,61 +99,58 @@ def get_question():
     
     return jsonify(response)
 
+def build_gpt_prompt(user_input, today_str):
+    return f"""
+아래 문장에서 날짜와 시작/종료 시간을 ISO 8601 포맷(YYYY-MM-DDTHH:MM:SS)으로 추출해서 JSON으로 반환해줘.
+오늘 날짜는 {today_str}야.
+만약 일정 제목(요약)이 있으면 summary 필드도 포함해줘.
+
+예시 입력: "내일 오후 3시부터 4시 회의"
+예시 출력: {{"start_datetime": "2025-05-11T15:00:00", "end_datetime": "2025-05-11T16:00:00", "summary": "회의"}}
+
+입력: "{user_input}"
+"""
+
 @application.route("/schedule", methods=["POST"])
 def schedule_meeting():
     request_data = request.get_json()
     user_id = request_data['userRequest']['user']['id']
-    date_str = request_data['action']['params']['date']
-    time_param = request_data['action']['params']['time']
+    # 자유 입력 파라미터(question)만 사용
+    user_input = request_data['action']['params'].get('question')
+    if not user_input:
+        return jsonify({"version": "2.0", "template": {"outputs": [{"simpleText": {"text": "질문(일정 내용)을 입력해 주세요."}}]}})
 
-    print(f"date_str: {date_str}, time_param: {time_param}, type: {type(time_param)}")
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    prompt = build_gpt_prompt(user_input, today_str)
 
-    def parse_time_range(time_param, date_str):
-        # 1. 딕셔너리(엔티티 객체)로 들어오는 경우
-        if isinstance(time_param, dict):
-            start_time = time_param.get('from') or time_param.get('start')
-            end_time = time_param.get('to') or time_param.get('end')
-            try:
-                start_time_fmt = parser.parse(start_time).strftime("%H:%M:%S")
-                end_time_fmt = parser.parse(end_time).strftime("%H:%M:%S")
-                start_datetime = f"{date_str}T{start_time_fmt}"
-                end_datetime = f"{date_str}T{end_time_fmt}"
-                return start_datetime, end_datetime
-            except:
-                return None, None
-        # 2. 문자열로 들어오는 경우 (예: '1시부터 2시')
-        match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_param)
-        if match:
-            start_hour = int(match.group(1))
-            end_hour = int(match.group(2))
-            start_time = f"{start_hour:02d}:00:00"
-            end_time = f"{end_hour:02d}:00:00"
-            start_datetime = f"{date_str}T{start_time}"
-            end_datetime = f"{date_str}T{end_time}"
-            return start_datetime, end_datetime
-        match = re.match(r'(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})', time_param)
-        if match:
-            start_datetime = f"{date_str}T{match.group(1)}:00"
-            end_datetime = f"{date_str}T{match.group(2)}:00"
-            return start_datetime, end_datetime
-        try:
-            parsed = parser.parse(time_param)
-            start_datetime = f"{date_str}T{parsed.strftime('%H:%M:%S')}"
-            end_datetime = f"{date_str}T{(parsed + timedelta(hours=1)).strftime('%H:%M:%S')}"
-            return start_datetime, end_datetime
-        except:
-            return None, None
-
+    # GPT 호출
+    openai.api_key = os.getenv('OPENAI_API_KEY')
     try:
-        start_datetime, end_datetime = parse_time_range(time_param, date_str)
-        if not start_datetime or not end_datetime:
-            raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_param}")
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            timeout=25
+        )
+        gpt_response = completion.choices[0].message.content
+    except Exception as e:
+        return jsonify({"version": "2.0", "template": {"outputs": [{"simpleText": {"text": f"GPT 호출 오류: {str(e)}"}}]}})
+
+    # GPT 응답에서 JSON 파싱
+    import json
+    try:
+        parsed = json.loads(gpt_response)
+        start_datetime = parsed["start_datetime"]
+        end_datetime = parsed["end_datetime"]
+        summary = parsed.get("summary", "상담 일정")
+    except Exception as e:
+        return jsonify({"version": "2.0", "template": {"outputs": [{"simpleText": {"text": f"GPT 응답 파싱 오류: {str(e)}\n{gpt_response}"}}]}})
+
+    # Google Calendar API에 등록
+    try:
         service = get_google_calendar_service()
         calendar_id = os.getenv('GOOGLE_CALENDAR_ID')
-        if not calendar_id:
-            raise ValueError("환경변수 GOOGLE_CALENDAR_ID가 설정되어 있지 않습니다.")
         event = {
-            'summary': '상담 일정',
+            'summary': summary,
             'description': f'카카오톡 챗봇을 통한 상담 예약',
             'start': {
                 'dateTime': start_datetime,
@@ -165,7 +162,7 @@ def schedule_meeting():
             },
         }
         print("event 데이터:", json.dumps(event, ensure_ascii=False))
-        event = service.events().insert(
+        service.events().insert(
             calendarId=calendar_id,
             body=event,
             sendUpdates='all'
@@ -175,20 +172,18 @@ def schedule_meeting():
             "template": {
                 "outputs": [{
                     "simpleText": {
-                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n날짜: {date_str}\n시간: {start_datetime[-8:-3]} ~ {end_datetime[-8:-3]}"
+                        "text": f"상담 일정이 성공적으로 등록되었습니다!\n{summary}\n{start_datetime} ~ {end_datetime}"
                     }
                 }]
             }
         }
     except Exception as e:
-        error_message = f"일정 등록 중 오류가 발생했습니다: {str(e)}\n캘린더ID: {os.getenv('GOOGLE_CALENDAR_ID')}"
-        print(error_message)  # 로깅을 위해 에러 메시지 출력
         response = {
             "version": "2.0",
             "template": {
                 "outputs": [{
                     "simpleText": {
-                        "text": error_message
+                        "text": f"일정 등록 중 오류가 발생했습니다: {str(e)}"
                     }
                 }]
             }

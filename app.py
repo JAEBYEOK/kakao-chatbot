@@ -82,33 +82,41 @@ def schedule_meeting():
     request_data = request.get_json()
     user_id = request_data['userRequest']['user']['id']
     date_str = request_data['action']['params']['date']
-    time_str = request_data['action']['params']['time']
+    time_param = request_data['action']['params']['time']
 
-    def parse_time_range(time_str, date_str):
-        # "3시부터 4시" 패턴
-        match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_str)
+    def parse_time_range(time_param, date_str):
+        # 1. 딕셔너리(엔티티 객체)로 들어오는 경우
+        if isinstance(time_param, dict):
+            start_time = time_param.get('from') or time_param.get('start')
+            end_time = time_param.get('to') or time_param.get('end')
+            try:
+                start_time_fmt = parser.parse(start_time).strftime("%H:%M")
+                end_time_fmt = parser.parse(end_time).strftime("%H:%M")
+                return start_time_fmt, end_time_fmt
+            except:
+                return None, None
+        # 2. 문자열로 들어오는 경우 (기존 코드)
+        match = re.match(r'(\d{1,2})시부터\s*(\d{1,2})시', time_param)
         if match:
             start_hour = int(match.group(1))
             end_hour = int(match.group(2))
             start_time = f"{start_hour:02d}:00"
             end_time = f"{end_hour:02d}:00"
             return start_time, end_time
-        # "15:00~16:00" 패턴
-        match = re.match(r'(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})', time_str)
+        match = re.match(r'(\d{1,2}:\d{2})\s*~\s*(\d{1,2}:\d{2})', time_param)
         if match:
             return match.group(1), match.group(2)
-        # 단일 시간만 들어온 경우
         try:
-            parsed = parser.parse(time_str)
+            parsed = parser.parse(time_param)
             return parsed.strftime("%H:%M"), (parsed + timedelta(hours=1)).strftime("%H:%M")
         except:
             return None, None
 
     try:
         # 날짜와 시간 파싱
-        start_time, end_time = parse_time_range(time_str, date_str)
+        start_time, end_time = parse_time_range(time_param, date_str)
         if not start_time or not end_time:
-            raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_str}")
+            raise ValueError(f"시간 형식을 인식할 수 없습니다: {time_param}")
         # Google Calendar API 사용
         service = get_google_calendar_service()
         event = {

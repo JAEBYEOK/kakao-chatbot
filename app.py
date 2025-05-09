@@ -84,6 +84,9 @@ def schedule_meeting():
     date_str = request_data['action']['params']['date']
     time_param = request_data['action']['params']['time']
 
+    # 실제 들어오는 값 확인
+    print(f"date_str: {date_str}, time_param: {time_param}, type: {type(time_param)}")
+
     def parse_time_range(time_param, date_str):
         # 1. 딕셔너리(엔티티 객체)로 들어오는 경우
         if isinstance(time_param, dict):

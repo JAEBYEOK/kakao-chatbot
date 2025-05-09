@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: kakao-chatbot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:application
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        sync: false 

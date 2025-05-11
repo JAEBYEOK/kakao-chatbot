@@ -1,6 +1,13 @@
 import os
 import time
 import json
+
+# 서비스 계정 JSON을 환경변수에서 읽어 파일로 저장
+GOOGLE_CREDENTIALS_ENV = os.getenv('GOOGLE_CREDENTIALS')
+if GOOGLE_CREDENTIALS_ENV:
+    with open('credentials.json', 'w') as f:
+        f.write(GOOGLE_CREDENTIALS_ENV)
+
 from flask import Flask, jsonify, request
 import openai
 from datetime import datetime

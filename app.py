@@ -28,7 +28,7 @@ def get_google_calendar_service():
     )
     return build('calendar', 'v3', credentials=credentials)
 
-def build_gpt_prompt(user_input, today_str):
+def build_gpt_prompt_for_schedule(user_input, today_str):
     return f"""
 아래 문장에서 날짜와 시작/종료 시간을 ISO 8601 포맷(YYYY-MM-DDTHH:MM:SS)으로 추출해서 JSON으로 반환해줘.
 오늘 날짜는 {today_str}야.
@@ -40,6 +40,43 @@ def build_gpt_prompt(user_input, today_str):
 입력: "{user_input}"
 """
 
+@application.route("/question", methods=["POST"])
+def question():
+    request_data = request.get_json()
+    user_input = request_data['action']['params'].get('question')
+    if not user_input:
+        return jsonify({"version": "2.0", "template": {"outputs": [{"simpleText": {"text": "AI에게 할 말을 입력해 주세요."}}]}})
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+    try:
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": user_input}],
+            timeout=25
+        )
+        gpt_response = completion.choices[0].message.content
+        response = {
+            "version": "2.0",
+            "template": {
+                "outputs": [{
+                    "simpleText": {
+                        "text": gpt_response
+                    }
+                }]
+            }
+        }
+    except Exception as e:
+        response = {
+            "version": "2.0",
+            "template": {
+                "outputs": [{
+                    "simpleText": {
+                        "text": f"AI 답변 중 오류가 발생했습니다: {str(e)}"
+                    }
+                }]
+            }
+        }
+    return jsonify(response)
+
 @application.route("/schedule", methods=["POST"])
 def schedule_meeting():
     request_data = request.get_json()
@@ -48,7 +85,7 @@ def schedule_meeting():
         return jsonify({"version": "2.0", "template": {"outputs": [{"simpleText": {"text": "일정 내용을 입력해 주세요."}}]}})
 
     today_str = datetime.now().strftime("%Y-%m-%d")
-    prompt = build_gpt_prompt(user_input, today_str)
+    prompt = build_gpt_prompt_for_schedule(user_input, today_str)
 
     # GPT 호출
     openai.api_key = os.getenv('OPENAI_API_KEY')

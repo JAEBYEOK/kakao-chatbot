@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_c6587fabb22e63fb120bb451c3349381 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+</head>
+<body>
+    
+    
+    <div style="position: fixed; 
+                top: 10px; left: 50px; width: 400px; height: 350px; 
+                background-color: white; border: 3px solid purple; z-index: 9999; 
+                font-size: 14px; padding: 15px; border-radius: 15px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+    <h3>🤖 LLM 맞춤형 내비게이션</h3>
+    
+    <p><b>🧠 AI 추천 이유:</b><br>경치를 천천히 감상할 수 있는 해안도로 중심 경로</p>
+    
+    <p><b>📊 LLM 만족도:</b> 2.0/10</p>
+    
+    <p><b>⏱️ 예상 시간:</b> 2.5시간</p>
+    
+    <p><b>✨ 여행 하이라이트:</b></p>
+    <ul style="margin: 0; padding-left: 20px;">
+    <li style='margin-bottom: 5px;'>🌊 애월해안도로에서의 환상적인 바다 전망</li><li style='margin-bottom: 5px;'>🌊 협재해수욕장에서의 환상적인 바다 전망</li>
+    </ul>
+    
+    <p style="margin-top: 10px; font-size: 12px; color: #666;">
+    💡 실제 구현시 OpenAI GPT + STT/TTS 연동
+    </p>
+    </div>
+    
+    
+            <div class="folium-map" id="map_c6587fabb22e63fb120bb451c3349381" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_c6587fabb22e63fb120bb451c3349381 = L.map(
+                "map_c6587fabb22e63fb120bb451c3349381",
+                {
+                    center: [33.3617, 126.5312],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 10,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_e1555ca9a73607c82259017bc102d6fd = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_e1555ca9a73607c82259017bc102d6fd.addTo(map_c6587fabb22e63fb120bb451c3349381);
+        
+    
+            var poly_line_969c7f19f76718e150aac458d49e0048 = L.polyline(
+                [[33.461695, 126.935639], [33.461695, 126.935639]],
+                {"bubblingMouseEvents": true, "color": "purple", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "purple", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 6}
+            ).addTo(map_c6587fabb22e63fb120bb451c3349381);
+        
+    
+        var popup_8d90cc7ae1424e79e3a2b726615ecb52 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_761f8aeae3c1149e64b8077961aa4a44 = $(`<div id="html_761f8aeae3c1149e64b8077961aa4a44" style="width: 100.0%; height: 100.0%;">🤖 LLM 맞춤형 경로: 0.0km</div>`)[0];
+                popup_8d90cc7ae1424e79e3a2b726615ecb52.setContent(html_761f8aeae3c1149e64b8077961aa4a44);
+            
+        
+
+        poly_line_969c7f19f76718e150aac458d49e0048.bindPopup(popup_8d90cc7ae1424e79e3a2b726615ecb52)
+        ;
+
+        
+    
+    
+            var marker_abc264347f4234a4be9a734188f537b2 = L.marker(
+                [33.4647, 126.3094],
+                {
+}
+            ).addTo(map_c6587fabb22e63fb120bb451c3349381);
+        
+    
+            var icon_da8c69c05d64d3f6195c46fab6e8fd14 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "camera",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_abc264347f4234a4be9a734188f537b2.setIcon(icon_da8c69c05d64d3f6195c46fab6e8fd14);
+        
+    
+        var popup_3e801fc3e7651c9af95552f501f23680 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_414462c423260d2f7e10b4823842d146 = $(`<div id="html_414462c423260d2f7e10b4823842d146" style="width: 100.0%; height: 100.0%;">             <b>🤖 LLM 추천 1번째</b><br>             <b>애월해안도로</b><br>             타입: scenic<br>             AI 선정 이유: 사용자 선호도 반영             </div>`)[0];
+                popup_3e801fc3e7651c9af95552f501f23680.setContent(html_414462c423260d2f7e10b4823842d146);
+            
+        
+
+        marker_abc264347f4234a4be9a734188f537b2.bindPopup(popup_3e801fc3e7651c9af95552f501f23680)
+        ;
+
+        
+    
+    
+            var marker_ca6529544ff2ed0ad5524ab560d2eb12 = L.marker(
+                [33.3948, 126.2397],
+                {
+}
+            ).addTo(map_c6587fabb22e63fb120bb451c3349381);
+        
+    
+            var icon_c07c03f709ad2fea8dbe3cc205c19b32 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "green",
+  "iconColor": "white",
+  "icon": "camera",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+            marker_ca6529544ff2ed0ad5524ab560d2eb12.setIcon(icon_c07c03f709ad2fea8dbe3cc205c19b32);
+        
+    
+        var popup_5a55cd3c82ae7e5335b095b2c534bc84 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_ff419a5190c1ca7a3317784a7bbcecd7 = $(`<div id="html_ff419a5190c1ca7a3317784a7bbcecd7" style="width: 100.0%; height: 100.0%;">             <b>🤖 LLM 추천 2번째</b><br>             <b>협재해수욕장</b><br>             타입: scenic<br>             AI 선정 이유: 사용자 선호도 반영             </div>`)[0];
+                popup_5a55cd3c82ae7e5335b095b2c534bc84.setContent(html_ff419a5190c1ca7a3317784a7bbcecd7);
+            
+        
+
+        marker_ca6529544ff2ed0ad5524ab560d2eb12.bindPopup(popup_5a55cd3c82ae7e5335b095b2c534bc84)
+        ;
+
+        
+    
+</script>
+</html>

@@ -1,0 +1,79 @@
+# OSRM 서버 설정
+server:
+  host: "localhost"
+  port: 5000
+  max_table_size: 8000
+  max_matching_size: 5000
+  max_viaroute_size: 10000
+  max_trip_size: 1000
+
+# 라우팅 프로파일 설정
+profiles:
+  driving:
+    algorithm: "CH"  # Contraction Hierarchies
+    extract_args:
+      - "--profile"
+      - "car"
+    contract_args:
+      - "--threads"
+      - "4"
+    route_args:
+      - "--algorithm"
+      - "ch"
+      
+  scenic:
+    algorithm: "MLD"  # Multi-Level Dijkstra
+    extract_args:
+      - "--profile"
+      - "scenic_car"
+    contract_args:
+      - "--threads"
+      - "4"
+    route_args:
+      - "--algorithm"
+      - "mld"
+
+# 제주도 특화 설정
+jeju_settings:
+  # 관광 가중치 설정
+  tourism_weights:
+    coastal_road: 1.5      # 해안도로 가중치
+    mountain_road: 1.3     # 산악도로 가중치
+    cultural_site: 1.4     # 문화유적지 근처
+    scenic_viewpoint: 1.6  # 경치 좋은 지점
+    
+  # 도로 타입별 속도 설정
+  road_speeds:
+    highway: 80
+    primary: 60
+    secondary: 50
+    tertiary: 40
+    residential: 30
+    coastal_scenic: 40     # 해안 경관도로
+    
+  # 제한 사항
+  restrictions:
+    avoid_toll: false
+    avoid_ferries: false
+    avoid_unpaved: true
+    
+# 데이터 경로
+data_paths:
+  input_osm: "data/raw/jeju.osm.pbf"
+  output_dir: "osrm_data/"
+  
+# 추출 및 전처리 설정
+preprocessing:
+  threads: 4
+  memory_limit: "8GB"
+  
+# 로깅 설정
+logging:
+  level: "INFO"
+  file: "logs/osrm_server.log"
+  
+# API 응답 설정
+api:
+  cors_enabled: true
+  max_request_size: "100MB"
+  timeout: 30 

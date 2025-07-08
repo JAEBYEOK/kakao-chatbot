@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "project_name": "jeju_navigation_system",
+  "description": "제주도 여행 전용 내비게이션 시스템",
+  "default_branch": "master",
+  "task_directory": ".taskmaster/tasks",
+  "log_directory": "logs/taskmaster",
+  "workspace": ".",
+  "environment": {
+    "PYTHONPATH": ".",
+    "LOG_LEVEL": "INFO"
+  },
+  "global_settings": {
+    "max_parallel_tasks": 3,
+    "timeout_minutes": 120,
+    "retry_attempts": 2,
+    "auto_cleanup": true
+  },
+  "notifications": {
+    "enabled": true,
+    "on_success": true,
+    "on_failure": true,
+    "on_start": false
+  }
+} 

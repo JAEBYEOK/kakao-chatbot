@@ -1,0 +1,133 @@
+name: jeju_navigation_pipeline
+description: 제주도 여행 전용 내비게이션 시스템 구축 파이프라인
+
+stages:
+  - name: link_data_processing
+    description: 제주도 링크데이터 수집 및 전처리
+    dependencies: []
+    scripts:
+      - scripts/01_link_data_collection.py
+    inputs:
+      - data/raw/jeju_road_network.osm
+      - data/raw/jeju_poi_data.csv
+    outputs:
+      - data/processed/jeju_links.json
+      - data/processed/road_segments.geojson
+    
+  - name: poi_matching
+    description: POI와 링크데이터 매칭
+    dependencies: [link_data_processing]
+    scripts:
+      - scripts/02_poi_matching.py
+    inputs:
+      - data/processed/jeju_links.json
+      - data/raw/poi_database.csv
+    outputs:
+      - data/processed/poi_matched_links.json
+      - data/processed/poi_coordinates.csv
+    
+  - name: tourism_labeling
+    description: 관광정보 라벨링
+    dependencies: [poi_matching]
+    scripts:
+      - scripts/03_tourism_labeling.py
+    inputs:
+      - data/processed/poi_matched_links.json
+      - data/raw/tourism_info.json
+    outputs:
+      - data/labeled/tourism_labeled_links.json
+      - data/labeled/attraction_categories.csv
+    
+  - name: voice_data_collection
+    description: 음성데이터 수집 및 정리
+    dependencies: [tourism_labeling]
+    scripts:
+      - scripts/04_voice_data_collection.py
+    inputs:
+      - data/labeled/tourism_labeled_links.json
+      - data/raw/voice_samples/
+    outputs:
+      - data/voice/processed_audio.wav
+      - data/voice/transcription.txt
+    
+  - name: stt_tts_training
+    description: STT/TTS 모델 학습
+    dependencies: [voice_data_collection]
+    scripts:
+      - scripts/05_stt_tts_training.py
+    inputs:
+      - data/voice/processed_audio.wav
+      - data/voice/transcription.txt
+    outputs:
+      - models/stt_model.pkl
+      - models/tts_model.pkl
+      - models/voice_embeddings.npy
+    
+  - name: osrm_server_setup
+    description: OSRM 서버 구축 및 설정
+    dependencies: [tourism_labeling]
+    scripts:
+      - scripts/06_osrm_setup.py
+    inputs:
+      - data/labeled/tourism_labeled_links.json
+      - config/osrm_config.yaml
+    outputs:
+      - osrm_data/jeju.osrm
+      - osrm_data/jeju.osrm.hsgr
+    
+  - name: llm_integration
+    description: LLM 통합 및 학습
+    dependencies: [stt_tts_training, osrm_server_setup]
+    scripts:
+      - scripts/07_llm_integration.py
+    inputs:
+      - models/stt_model.pkl
+      - models/tts_model.pkl
+      - data/labeled/tourism_labeled_links.json
+      - config/llm_config.yaml
+    outputs:
+      - models/navigation_llm.pkl
+      - models/route_embeddings.npy
+    
+  - name: mobile_app_deployment
+    description: 모바일 앱 배포
+    dependencies: [llm_integration]
+    scripts:
+      - scripts/08_mobile_deployment.py
+    inputs:
+      - models/navigation_llm.pkl
+      - models/stt_model.pkl
+      - models/tts_model.pkl
+    outputs:
+      - mobile_app/jeju_navigation.apk
+      - mobile_app/api_endpoints.json
+
+execution_config:
+  retry_attempts: 3
+  timeout_minutes: 120
+  parallel_execution: true
+  resource_requirements:
+    cpu_cores: 4
+    memory_gb: 16
+    gpu_required: true
+    
+monitoring:
+  log_level: INFO
+  metrics_collection: true
+  alert_on_failure: true
+  
+environment:
+  python_version: "3.9"
+  required_packages:
+    - pandas
+    - geopandas
+    - osmnx
+    - folium
+    - scikit-learn
+    - tensorflow
+    - torch
+    - transformers
+    - openai
+    - requests
+    - pydub
+    - librosa 

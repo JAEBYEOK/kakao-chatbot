@@ -1,0 +1,245 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": "link_data_processing",
+        "name": "제주도 링크데이터 수집 및 전처리",
+        "description": "제주도 OSM 도로 네트워크 데이터 다운로드 및 전처리",
+        "type": "python_script",
+        "script": "scripts/01_link_data_collection.py",
+        "dependencies": [],
+        "inputs": [
+          "config/project_config.yaml"
+        ],
+        "outputs": [
+          "data/processed/jeju_links.json",
+          "data/processed/road_segments.geojson"
+        ],
+        "tags": [
+          "data",
+          "preprocessing",
+          "osm"
+        ],
+        "priority": 1,
+        "timeout_minutes": 60,
+        "retry_attempts": 3
+      },
+      {
+        "id": "poi_matching",
+        "name": "POI와 링크데이터 매칭",
+        "description": "관심지점과 도로 링크 매칭 작업",
+        "type": "python_script",
+        "script": "scripts/02_poi_matching.py",
+        "dependencies": [
+          "link_data_processing"
+        ],
+        "inputs": [
+          "data/processed/jeju_links.json",
+          "data/raw/poi_database.csv"
+        ],
+        "outputs": [
+          "data/processed/poi_matched_links.json",
+          "data/processed/poi_coordinates.csv"
+        ],
+        "tags": [
+          "poi",
+          "matching",
+          "geospatial"
+        ],
+        "priority": 2,
+        "timeout_minutes": 45
+      },
+      {
+        "id": "tourism_labeling",
+        "name": "관광정보 라벨링",
+        "description": "도로별 관광 특성 라벨링 및 카테고리 분류",
+        "type": "python_script",
+        "script": "scripts/03_tourism_labeling.py",
+        "dependencies": [
+          "poi_matching"
+        ],
+        "inputs": [
+          "data/processed/poi_matched_links.json",
+          "data/raw/tourism_info.json"
+        ],
+        "outputs": [
+          "data/labeled/tourism_labeled_links.json",
+          "data/labeled/attraction_categories.csv"
+        ],
+        "tags": [
+          "labeling",
+          "tourism",
+          "classification"
+        ],
+        "priority": 3,
+        "timeout_minutes": 30
+      },
+      {
+        "id": "voice_data_collection",
+        "name": "음성데이터 수집",
+        "description": "내비게이션용 음성 데이터 수집 및 전사",
+        "type": "python_script",
+        "script": "scripts/04_voice_data_collection.py",
+        "dependencies": [
+          "tourism_labeling"
+        ],
+        "inputs": [
+          "data/labeled/tourism_labeled_links.json",
+          "data/raw/voice_samples/"
+        ],
+        "outputs": [
+          "data/voice/processed_audio.wav",
+          "data/voice/transcription.txt"
+        ],
+        "tags": [
+          "voice",
+          "audio",
+          "preprocessing"
+        ],
+        "priority": 4,
+        "timeout_minutes": 90
+      },
+      {
+        "id": "stt_tts_training",
+        "name": "STT/TTS 모델 학습",
+        "description": "한국어 음성 인식 및 합성 모델 학습",
+        "type": "python_script",
+        "script": "scripts/05_stt_tts_training.py",
+        "dependencies": [
+          "voice_data_collection"
+        ],
+        "inputs": [
+          "data/voice/processed_audio.wav",
+          "data/voice/transcription.txt"
+        ],
+        "outputs": [
+          "models/stt_model.pkl",
+          "models/tts_model.pkl",
+          "models/voice_embeddings.npy"
+        ],
+        "tags": [
+          "ml",
+          "voice",
+          "training"
+        ],
+        "priority": 5,
+        "timeout_minutes": 240,
+        "requires_gpu": true
+      },
+      {
+        "id": "osrm_server_setup",
+        "name": "OSRM 서버 구축",
+        "description": "제주도 특화 라우팅 서버 구축 및 설정",
+        "type": "python_script",
+        "script": "scripts/06_osrm_setup.py",
+        "dependencies": [
+          "tourism_labeling"
+        ],
+        "inputs": [
+          "data/labeled/tourism_labeled_links.json",
+          "config/osrm_config.yaml"
+        ],
+        "outputs": [
+          "osrm_data/jeju.osrm",
+          "osrm_data/jeju.osrm.hsgr"
+        ],
+        "tags": [
+          "osrm",
+          "routing",
+          "server"
+        ],
+        "priority": 6,
+        "timeout_minutes": 120,
+        "parallel_allowed": false
+      },
+      {
+        "id": "llm_integration",
+        "name": "LLM 통합 및 학습",
+        "description": "대화형 내비게이션을 위한 LLM 학습 및 통합",
+        "type": "python_script",
+        "script": "scripts/07_llm_integration.py",
+        "dependencies": [
+          "stt_tts_training",
+          "osrm_server_setup"
+        ],
+        "inputs": [
+          "models/stt_model.pkl",
+          "models/tts_model.pkl",
+          "data/labeled/tourism_labeled_links.json",
+          "config/llm_config.yaml"
+        ],
+        "outputs": [
+          "models/navigation_llm.pkl",
+          "models/route_embeddings.npy"
+        ],
+        "tags": [
+          "llm",
+          "integration",
+          "ai"
+        ],
+        "priority": 7,
+        "timeout_minutes": 180,
+        "requires_gpu": true
+      },
+      {
+        "id": "mobile_app_deployment",
+        "name": "모바일 앱 배포",
+        "description": "내비게이션 앱 빌드 및 배포 준비",
+        "type": "python_script",
+        "script": "scripts/08_mobile_deployment.py",
+        "dependencies": [
+          "llm_integration"
+        ],
+        "inputs": [
+          "models/navigation_llm.pkl",
+          "models/stt_model.pkl",
+          "models/tts_model.pkl"
+        ],
+        "outputs": [
+          "mobile_app/jeju_navigation.apk",
+          "mobile_app/api_endpoints.json"
+        ],
+        "tags": [
+          "mobile",
+          "deployment",
+          "app"
+        ],
+        "priority": 8,
+        "timeout_minutes": 60
+      }
+    ],
+    "task_groups": [
+      {
+        "name": "data_pipeline",
+        "description": "데이터 수집 및 전처리 그룹",
+        "tasks": [
+          "link_data_processing",
+          "poi_matching", 
+          "tourism_labeling"
+        ]
+      },
+      {
+        "name": "ml_pipeline",
+        "description": "머신러닝 모델 학습 그룹",
+        "tasks": [
+          "voice_data_collection",
+          "stt_tts_training",
+          "llm_integration"
+        ]
+      },
+      {
+        "name": "deployment_pipeline",
+        "description": "서버 및 앱 배포 그룹",
+        "tasks": [
+          "osrm_server_setup",
+          "mobile_app_deployment"
+        ]
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-26T04:40:15.428Z",
+      "updated": "2025-06-26T04:40:15.428Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

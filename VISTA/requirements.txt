@@ -1,0 +1,51 @@
+# 기본 데이터 처리
+pandas>=1.5.0
+numpy>=1.24.0
+geopandas>=0.13.0
+shapely>=2.0.0
+
+# 지도 및 공간 데이터
+osmnx>=1.6.0
+folium>=0.14.0
+overpy>=0.6
+
+# 머신러닝 및 딥러닝
+scikit-learn>=1.3.0
+tensorflow>=2.13.0
+torch>=2.0.0
+transformers>=4.32.0
+
+# 음성 처리
+pydub>=0.25.0
+librosa>=0.10.0
+speechrecognition>=3.10.0
+gtts>=2.3.0
+
+# LLM 및 API
+openai>=0.27.0
+langchain>=0.0.200
+requests>=2.31.0
+
+# 웹 프레임워크
+fastapi>=0.100.0
+uvicorn>=0.23.0
+flask>=2.3.0
+
+# 데이터베이스
+sqlalchemy>=2.0.0
+sqlite3
+
+# 유틸리티
+pyyaml>=6.0
+python-dotenv>=1.0.0
+tqdm>=4.65.0
+click>=8.1.0
+
+# 개발 도구
+pytest>=7.4.0
+black>=23.7.0
+flake8>=6.0.0
+
+# OSRM 관련
+pyosmium>=3.6.0
+osrm>=0.1.0 

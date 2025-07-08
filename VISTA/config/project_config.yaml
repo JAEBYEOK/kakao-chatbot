@@ -1,0 +1,71 @@
+# 제주도 내비게이션 프로젝트 설정
+project:
+  name: "jeju_navigation_system"
+  version: "1.0.0"
+  description: "제주도 여행 전용 맞춤형 내비게이션 시스템"
+  
+# 데이터 경로 설정
+data_paths:
+  raw_data: "data/raw/"
+  processed_data: "data/processed/"
+  labeled_data: "data/labeled/"
+  voice_data: "data/voice/"
+  models: "models/"
+  osrm_data: "osrm_data/"
+  
+# 제주도 지역 설정
+jeju_region:
+  bbox:
+    north: 33.5652
+    south: 33.1096
+    east: 126.9537
+    west: 126.1628
+  center:
+    lat: 33.3617
+    lon: 126.5292
+    
+# API 설정
+apis:
+  openai:
+    model: "gpt-4"
+    max_tokens: 2048
+    temperature: 0.7
+  tourism_api:
+    base_url: "https://api.visitjeju.net"
+    timeout: 30
+    
+# 음성 처리 설정
+voice:
+  sample_rate: 16000
+  channels: 1
+  chunk_size: 1024
+  languages: ["ko-KR", "en-US"]
+  
+# 지도 설정
+map:
+  default_zoom: 11
+  tile_layer: "OpenStreetMap"
+  
+# 모델 설정
+models:
+  stt:
+    model_type: "whisper"
+    language: "korean"
+  tts:
+    voice_type: "korean_female"
+    speed: 1.0
+  llm:
+    embedding_dim: 768
+    max_sequence_length: 512
+    
+# OSRM 설정
+osrm:
+  server_host: "localhost"
+  server_port: 5000
+  profile: "driving"
+  
+# 로깅 설정
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/navigation_system.log" 

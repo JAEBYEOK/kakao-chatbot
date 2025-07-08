@@ -1,0 +1,167 @@
+{
+  "poi": {
+    "성산일출봉": {
+      "category": "관광명소",
+      "type": "자연경관",
+      "coordinates": [126.9423, 33.4586],
+      "description": "유네스코 세계자연유산, 제주 최고의 일출 명소.",
+      "visit_duration_min": 90,
+      "best_time": "일출",
+      "rating": 4.8,
+      "entry_fee": "성인 5,000원",
+      "operating_hours": "07:30 - 19:00",
+      "keywords": ["성산일출봉", "성산", "일출봉", "썽산", "해돋이"]
+    },
+    "한라산": {
+      "category": "관광명소",
+      "type": "자연경관",
+      "coordinates": [126.5311, 33.3617],
+      "description": "대한민국 최고봉. 다양한 등반 코스가 있음.",
+      "visit_duration_min": 480,
+      "best_time": "오전",
+      "rating": 4.9,
+      "entry_fee": "무료 (예약 필수)",
+      "operating_hours": "코스별 입산 시간 확인 필요",
+      "keywords": ["한라산", "할라산", "한라", "백록담", "등산"]
+    },
+    "우도": {
+      "category": "관광명소",
+      "type": "섬여행",
+      "coordinates": [126.9513, 33.5069],
+      "description": "제주 대표 부속섬. 땅콩 아이스크림과 아름다운 해변이 유명.",
+      "visit_duration_min": 300,
+      "best_time": "하루종일",
+      "rating": 4.7,
+      "entry_fee": "선박 요금 별도",
+      "operating_hours": "선박 운항 시간 확인 필요",
+      "keywords": ["우도", "소섬", "우도섬", "배타고"]
+    },
+    "애월카페거리": {
+      "category": "핫플레이스",
+      "type": "카페문화",
+      "coordinates": [126.3094, 33.4647],
+      "description": "해안을 따라 예쁜 카페들이 모여있는 인스타 핫플레이스.",
+      "visit_duration_min": 120,
+      "best_time": "오후",
+      "rating": 4.5,
+      "entry_fee": "없음 (카페 이용료 별도)",
+      "operating_hours": "카페별 상이",
+      "keywords": ["애월", "애월카페", "GD카페", "애월해안"]
+    },
+    "협재해수욕장": {
+      "category": "관광명소",
+      "type": "해수욕장",
+      "coordinates": [126.2397, 33.3948],
+      "description": "에메랄드빛 바다와 비양도가 보이는 아름다운 해변.",
+      "visit_duration_min": 180,
+      "best_time": "여름 오후",
+      "rating": 4.6,
+      "entry_fee": "무료",
+      "operating_hours": "24시간 개방 (수영 가능 시간 확인)",
+      "keywords": ["협재", "협재바다", "협재해변", "금능"]
+    },
+    "흑돼지거리": {
+      "category": "맛집",
+      "type": "음식문화",
+      "coordinates": [126.5219, 33.4996],
+      "description": "제주 흑돼지 전문 식당들이 모여있는 거리.",
+      "visit_duration_min": 90,
+      "best_time": "저녁",
+      "rating": 4.4,
+      "entry_fee": "없음",
+      "operating_hours": "식당별 상이",
+      "keywords": ["흑돼지", "고기집", "돼지고기"]
+    },
+    "동문시장": {
+      "category": "맛집",
+      "type": "전통시장",
+      "coordinates": [126.5258, 33.5145],
+      "description": "제주 전통 음식과 특산물, 기념품을 한번에 즐길 수 있는 곳.",
+      "visit_duration_min": 120,
+      "best_time": "오전/저녁",
+      "rating": 4.3,
+      "entry_fee": "무료",
+      "operating_hours": "08:00 - 21:00 (점포별 상이)",
+      "keywords": ["동문시장", "시장", "전통시장", "야시장"]
+    },
+    "중문관광단지": {
+        "category": "관광명소",
+        "type": "복합관광",
+        "coordinates": [126.4167, 33.2500],
+        "description": "박물관, 정원, 폭포 등 다양한 볼거리가 모여있는 곳.",
+        "visit_duration_min": 240,
+        "best_time": "하루종일",
+        "rating": 4.5,
+        "entry_fee": "시설별 상이",
+        "operating_hours": "시설별 상이",
+        "keywords": ["중문", "여미지", "테디베어", "중문해변"]
+    },
+    "서귀포매일올레시장": {
+        "category": "맛집",
+        "type": "전통시장",
+        "coordinates": [126.5619, 33.2541],
+        "description": "서귀포시의 대표적인 전통 시장. 다양한 먹거리로 유명.",
+        "visit_duration_min": 90,
+        "best_time": "오후",
+        "rating": 4.4,
+        "entry_fee": "무료",
+        "operating_hours": "07:00 - 21:00 (점포별 상이)",
+        "keywords": ["서귀포", "천지연", "정방폭포", "올레시장"]
+    },
+    "제주공항": {
+        "category": "교통",
+        "type": "공항",
+        "coordinates": [126.4930, 33.5107],
+        "description": "제주 여행의 시작과 끝.",
+        "visit_duration_min": 60,
+        "best_time": "상시",
+        "rating": 4.0,
+        "entry_fee": "없음",
+        "operating_hours": "24시간",
+        "keywords": ["공항", "제주공항", "출발", "시작"]
+    }
+  },
+  "roads": {
+    "1132": {
+      "name": "일주도로 (해안)",
+      "road_type": "해안도로",
+      "scenery_score": 9.8,
+      "tourism_priority": "최우선",
+      "features": ["바다전망", "카페거리", "사진스팟"],
+      "weather_sensitivity": "높음",
+      "recommended_speed": "느림"
+    },
+    "516": {
+      "name": "516도로 (한라산 관통)",
+      "road_type": "산악도로",
+      "scenery_score": 9.5,
+      "tourism_priority": "높음",
+      "features": ["한라산뷰", "단풍길", "숲터널"],
+      "weather_sensitivity": "매우높음",
+      "recommended_speed": "보통"
+    },
+    "1139": {
+        "name": "1100도로 (한라산 서쪽)",
+        "road_type": "산악도로",
+        "scenery_score": 9.2,
+        "tourism_priority": "높음",
+        "features": ["고지대습지", "설경", "한라산조망"],
+        "weather_sensitivity": "매우높음",
+        "recommended_speed": "보통"
+    }
+  },
+  "voice_landmarks": {
+    "방향": {
+        "북쪽": ["제주공항", "제주시", "애월", "한림"],
+        "남쪽": ["서귀포", "중문", "성산"],
+        "서쪽": ["한림", "협재", "애월"],
+        "동쪽": ["성산", "우도", "표선"]
+    },
+    "테마": {
+        "바다": ["협재해수욕장", "애월카페거리", "성산일출봉"],
+        "카페": ["애월카페거리", "성산일출봉", "우도"],
+        "관광지": ["성산일출봉", "한라산", "중문관광단지"],
+        "맛집": ["흑돼지거리", "동문시장", "서귀포매일올레시장"]
+    }
+  }
+}
